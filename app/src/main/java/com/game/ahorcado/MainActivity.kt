@@ -6,16 +6,20 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -29,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.game.ahorcado.ui.theme.AhorcadoTheme
 
 class MainActivity : ComponentActivity() {
@@ -43,7 +48,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AhorcadoTheme {
-                var word by remember { mutableStateOf(words.random().toUpperCase().toCharArray().toList()) }
+                var word by remember {
+                    mutableStateOf(
+                        words.random().uppercase().toCharArray().toList()
+                    )
+                }
                 var guessedLetters by remember { mutableStateOf(mutableStateListOf<Char>()) }
                 var attempts by remember { mutableStateOf(0) }
 
@@ -62,7 +71,7 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     onResetGame = {
-                        word = words.random().toUpperCase().toCharArray().toList()
+                        word = words.random().uppercase().toCharArray().toList()
                         guessedLetters = mutableStateListOf()
                         attempts = 0
                     }
@@ -72,6 +81,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AhorcadoScreen(
     word: List<Char>,
@@ -81,18 +91,21 @@ fun AhorcadoScreen(
     onLetterClick: (Char) -> Unit,
     onResetGame: () -> Unit
 ) {
-    val maxAttempts = 4
     val images = listOf(
         R.drawable.img1, R.drawable.img2, R.drawable.img3,
         R.drawable.img4
     )
+    val imageResource = if (attempts < images.size) images[attempts] else images.last()
 
     val gameWon = word.all { it in guessedLetters }
-    val gameLost = attempts >= maxAttempts
+    val gameLost = attempts > 2
+    var letters=mutableListOf<Char>()
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(
+        modifier = Modifier.padding(16.dp, vertical = 50.dp),
+    ) {
         Image(
-            painter = painterResource(id = images[attempts]), contentDescription = null,
+            painter = painterResource(id = imageResource), contentDescription = null,
             modifier = Modifier
                 .height(200.dp)
                 .fillMaxWidth()
@@ -124,22 +137,25 @@ fun AhorcadoScreen(
                 }
             )
         } else {
-            LazyColumn(
+            FlowRow(
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Center
             ) {
-                items(alphabet.chunked(7)) { rowLetters ->
-                    Row(
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        rowLetters.forEach { letter ->
-                            Button(onClick = { onLetterClick(letter) }, enabled = letter !in guessedLetters) {
-                                Text(text = "$letter")
-                            }
-                            Spacer(modifier = Modifier.width(4.dp))
+                alphabet.chunked(7).forEach { rowLetters ->
+
+                    rowLetters.forEach { letter ->
+
+                        Button(
+                            onClick = { onLetterClick(letter) },
+                            enabled = letter !in guessedLetters,
+                            shape = RoundedCornerShape(0)
+                        ) {
+                            Text(text = "$letter", fontSize = 30.sp,modifier = Modifier.width(30.dp))
+
                         }
+                        Spacer(modifier = Modifier.width(15.dp))
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
                 }
             }
         }
