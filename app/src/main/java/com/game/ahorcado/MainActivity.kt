@@ -40,7 +40,24 @@ class MainActivity : ComponentActivity() {
     private val words = listOf(
         "android",
         "jetpack",
-        "compose"
+        "componer",
+        "kotlin",
+        "desarrollo",
+        "estudio",
+        "aplicacion",
+        "variable",
+        "funcion",
+        "interfaz",
+        "arquitectura",
+        "actividad",
+        "fragmento",
+        "programacion",
+        "empanada",
+        "telefono",
+        "navegacion",
+        "repositorio",
+        "framework",
+        "lenguaje"
     )
     private val alphabet = ('A'..'Z').toList()
 
@@ -48,19 +65,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AhorcadoTheme {
-                var word by remember {
-                    mutableStateOf(
-                        words.random().uppercase().toCharArray().toList()
-                    )
-                }
+                var word by remember { mutableStateOf(words.random().uppercase().toCharArray().toList()) }
                 var guessedLetters by remember { mutableStateOf(mutableStateListOf<Char>()) }
                 var attempts by remember { mutableStateOf(0) }
+                var wordsGuessed by remember { mutableStateOf(0) }  // Estado para contar las palabras adivinadas
 
                 AhorcadoScreen(
                     word = word,
                     alphabet = alphabet,
                     guessedLetters = guessedLetters,
                     attempts = attempts,
+                    wordsGuessed = wordsGuessed,
                     onLetterClick = { letter ->
                         if (letter in word) {
                             if (letter !in guessedLetters) {
@@ -71,6 +86,9 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     onResetGame = {
+                        if (word.all { it in guessedLetters }) {
+                            wordsGuessed++  // Incrementa el conteo si se adivinó la palabra
+                        }
                         word = words.random().uppercase().toCharArray().toList()
                         guessedLetters = mutableStateListOf()
                         attempts = 0
@@ -88,6 +106,7 @@ fun AhorcadoScreen(
     alphabet: List<Char>,
     guessedLetters: List<Char>,
     attempts: Int,
+    wordsGuessed: Int,  // Agrega el parámetro para las palabras adivinadas
     onLetterClick: (Char) -> Unit,
     onResetGame: () -> Unit
 ) {
@@ -99,11 +118,22 @@ fun AhorcadoScreen(
 
     val gameWon = word.all { it in guessedLetters }
     val gameLost = attempts > 2
-    var letters=mutableListOf<Char>()
 
     Column(
         modifier = Modifier.padding(16.dp, vertical = 50.dp),
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Espacio vacío para la alineación
+            Spacer(modifier = Modifier.width(1.dp))
+            // Conteo de palabras adivinadas
+            Text(text = "Palabras adivinadas: $wordsGuessed")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
         Image(
             painter = painterResource(id = imageResource), contentDescription = null,
             modifier = Modifier
@@ -143,16 +173,13 @@ fun AhorcadoScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 alphabet.chunked(7).forEach { rowLetters ->
-
                     rowLetters.forEach { letter ->
-
                         Button(
                             onClick = { onLetterClick(letter) },
                             enabled = letter !in guessedLetters,
                             shape = RoundedCornerShape(0)
                         ) {
-                            Text(text = "$letter", fontSize = 30.sp,modifier = Modifier.width(30.dp))
-
+                            Text(text = "$letter", fontSize = 30.sp, modifier = Modifier.width(30.dp))
                         }
                         Spacer(modifier = Modifier.width(15.dp))
                     }
